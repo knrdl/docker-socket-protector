@@ -40,3 +40,8 @@ networks:
     attachable: false
     internal: true
 ```
+
+## FAQ
+
+### Why not just mount the docker socket as read only? 
+Mounting as `/var/run/docker.sock:/var/run/docker.sock:ro` (**ro** = readonly) just prevents traefik from changing file permissions on the socket file. The socket as pipe object stays writable, so you can still send arbitrary requests to the socket. Nevertheless using **ro** mode for socket mount is not wrong, but won't solve the security problem!
