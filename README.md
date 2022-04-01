@@ -3,12 +3,18 @@ Limit traefik's control over the docker daemon
 
 Traefik has a great [docker integration](https://doc.traefik.io/traefik/providers/docker/)! But exposing the docker socket to traefik equals basically giving traefik **full root access** to the host system. This litte program acts as a filtering proxy so traefik gets readonly access to necessary information from docker. See also https://doc.traefik.io/traefik/providers/docker/#endpoint
 
-```
-.---------.                    .----------------.                          .--------.
-|         |                    | Traefik Docker |                          | Docker |
-| Traefik |<--Docker Network-->| Protector      |<--/var/run/docker.sock-->| Daemon |
-'---------'                    '----------------'                          '--------'
+```mermaid
+graph LR
+a[Traefik]
+b[Traefik Docker Protector]
+c[Docker Daemon]
 
+a-->|Docker Network| b
+b-->|/var/run/docker.sock| c
+
+click a href "https://doc.traefik.io/traefik/providers/docker/"
+click b href "https://github.com/knrdl/traefik-docker-protector"
+click c href "https://docs.docker.com/config/daemon/"
 ```
 
 ## Setup
