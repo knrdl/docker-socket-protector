@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html"
 	"io"
 	"log"
 	"net"
@@ -18,6 +19,8 @@ var urlRegexes = []*regexp.Regexp{
 	genRegex(`^/v\d+\.\d+/tasks\?filters=`),
 	genRegex(`^/v\d+\.\d+/version$`),
 }
+
+var newLineRegex = regexp.MustCompile(`\r?\n`)
 
 func genRegex(pattern string) (urlRegex *regexp.Regexp) {
 	urlRegex, _ = regexp.Compile(pattern)
@@ -39,15 +42,15 @@ type proxy struct {
 func (p *proxy) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	if req.URL.Scheme != "" {
 		msg := "unsupported protocol scheme: " + req.URL.String()
-		http.Error(res, msg, http.StatusBadRequest)
-		log.Println(msg)
+		http.Error(res, html.EscapeString(msg), http.StatusBadRequest)
+		log.Println(newLineRegex.ReplaceAllString(msg, " "))
 		return
 	}
 
 	if req.Method != "GET" {
 		msg := "unsupported method: " + req.Method
-		http.Error(res, msg, http.StatusMethodNotAllowed)
-		log.Println(msg)
+		http.Error(res, html.EscapeString(msg), http.StatusMethodNotAllowed)
+		log.Println(newLineRegex.ReplaceAllString(msg, " "))
 		return
 	}
 
@@ -61,8 +64,8 @@ func (p *proxy) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	if !reqOk {
 		msg := "denied request to: " + req.URL.String()
-		http.Error(res, msg, http.StatusForbidden)
-		log.Println(msg)
+		http.Error(res, html.EscapeString(msg), http.StatusForbidden)
+		log.Println(newLineRegex.ReplaceAllString(msg, " "))
 		return
 	}
 
