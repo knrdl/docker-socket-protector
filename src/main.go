@@ -14,7 +14,7 @@ var urlRegexes = []*regexp.Regexp{
 	genRegex(`^/v\d+\.\d+/containers/json\?limit=\d+$`),
 	genRegex(`^/v\d+\.\d+/containers/[0-9a-fA-F]+/json$`),
 	genRegex(`^/v\d+\.\d+/events\?filters=%7B%22type%22%3A%7B%22container%22%3Atrue%7D%7D$`),
-	genRegex(`^/v\d+\.\d+/networks\?filters=`),
+	genRegex(`^/v\d+\.\d+/networks$`),
 	genRegex(`^/v\d+\.\d+/services$`),
 	genRegex(`^/v\d+\.\d+/tasks\?filters=`),
 	genRegex(`^/v\d+\.\d+/version$`),
