@@ -1,23 +1,38 @@
-# Traefik Docker Protector
-Limit traefik's control over the docker daemon
-
-Traefik has a great [docker integration](https://doc.traefik.io/traefik/providers/docker/)! But exposing the docker socket to traefik equals basically giving traefik **full root access** to the host system. This litte program acts as a filtering proxy so traefik gets readonly access to necessary information from docker. See also https://doc.traefik.io/traefik/providers/docker/#endpoint
+# Docker Socket Protector
+Some containerized applications (e.g. portainer, traefik, watchtower, ouroboros) demand access to the Docker socket (`/var/run/docker.sock`). But exposing the Docker socket to a container basically equals giving it **full root privileges** to the host system. Especially when the application just needs to read some information via the Docker socket the access should be locked down. Docker Socket Protector can do this by limiting the control an application gets over the Docker daemon. Only the required functions will be exposed via a customized Docker socket. Therefore, this little program acts as a customizable filtering proxy.
 
 ```mermaid
 graph LR
-a[Traefik]
-b[Traefik Docker Protector]
-c[Docker Daemon]
+a[Container]
+b[Docker\nSocket\nProtector]
+c[Docker\nDaemon]
 
-a-->|Docker Network| b
+
+subgraph Docker Network
+a-->| tcp://docker-socket-protector:2375 | b
+end
+
 b-->|/var/run/docker.sock| c
 
-click a href "https://doc.traefik.io/traefik/providers/docker/"
-click b href "https://github.com/knrdl/traefik-docker-protector"
+
+click b href "https://github.com/knrdl/docker-socket-protector"
 click c href "https://docs.docker.com/config/daemon/"
 ```
 
 ## Setup
+
+| Env Var      | Values           |                      |
+|--------------|------------------|----------------------|
+| LOG_REQUESTS | `true` / `false` | Whether requests are written to stdout. Useful to craft custom profiles.  |
+| PROFILE      | See [predefined profiles](./profiles/)| The filename of the profile to apply rules from.  |
+
+This software filters requests to the Docker socket based on a whitelist of rules. These rules are stored in a profile file. See [here](./profiles/) for examples shipped with the software. To allow all requests use the profile `unprotected`.
+
+The restricted docker socket is provided via TCP on port 2375. See example below.
+
+### Traefik Example Setup
+
+Traefik is a modern reverse proxy with a great [docker integration](https://doc.traefik.io/traefik/providers/docker/). It extracts routing rules from container labels. Therefore, Traefik needs **readonly** access to the Docker socket.
 
 ```yaml
 version: '3.9'
@@ -26,16 +41,19 @@ services:
 
   traefik:
     image: traefik
-    command: "--providers.docker.endpoint=http://traefik-docker-protector:2375"
+    command: "--providers.docker.endpoint=http://docker-socket-protector:2375"
     ports:
       - "80:80"
     networks:
       - docker_socket_net
   
-  traefik-docker-protector:
-    image: knrdl/traefik-docker-protector
-    hostname: traefik-docker-protector
+  docker-socket-protector:
+    image: knrdl/docker-socket-protector
+    hostname: docker-socket-protector
     read_only: true
+    environment:
+      LOG_REQUESTS: 'true'
+      PROFILE: 'traefik'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -47,7 +65,13 @@ networks:
     internal: true
 ```
 
+### Crafting custom profiles
+
+1. Record all requests to the Docker socket, e.g.: `docker run -it --rm -e PROFILE=unprotected -e LOG_REQUESTS=true -p2375:2375 -v /var/run/docker.sock:/var/run/docker.sock knrdl/docker-socket-protector`
+2. Analyze the lines starting with "request rule:" and extract rules via regular expressions
+3. Write a custom profile file "supersecure" and test it, e.g.: `docker run -it --rm -e PROFILE=supersecure -e LOG_REQUESTS=true -p2375:2375 -v /var/run/docker.sock:/var/run/docker.sock -v $PWD/supersecure:/profiles/supersecure:ro knrdl/docker-socket-protector`
+
 ## FAQ
 
 ### Why not just mount the docker socket as read only? 
-Mounting as `/var/run/docker.sock:/var/run/docker.sock:ro` (**ro** = readonly) just prevents traefik from changing file permissions on the socket file. The socket as pipe object stays writable, so you can still send arbitrary requests to the socket. Nevertheless using **ro** mode for socket mount is not wrong, but won't solve the security problem!
+Mounting as `/var/run/docker.sock:/var/run/docker.sock:ro` (**ro** = readonly) just prevents the container from changing file permissions on the socket file. The socket as pipe object stays writable, so you can still send arbitrary requests to the socket. Nevertheless, using **ro** mode for socket mount is not wrong, but won't solve the security problem!
