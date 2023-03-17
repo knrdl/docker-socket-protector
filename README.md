@@ -48,7 +48,7 @@ services:
       - docker_socket_net
   
   docker-socket-protector:
-    image: knrdl/docker-socket-protector
+    image: knrdl/docker-socket-protector  # or: ghcr.io/knrdl/docker-socket-protector
     hostname: docker-socket-protector
     read_only: true
     environment:
@@ -67,9 +67,10 @@ networks:
 
 ### Crafting custom profiles
 
-1. Record all requests to the Docker socket, e.g.: `docker run -it --rm -e PROFILE=unprotected -e LOG_REQUESTS=true -p2375:2375 -v /var/run/docker.sock:/var/run/docker.sock knrdl/docker-socket-protector`
-2. Analyze the lines starting with "request rule:" and extract rules via regular expressions
-3. Write a custom profile file "supersecure" and test it, e.g.: `docker run -it --rm -e PROFILE=supersecure -e LOG_REQUESTS=true -p2375:2375 -v /var/run/docker.sock:/var/run/docker.sock -v $PWD/supersecure:/profiles/supersecure:ro knrdl/docker-socket-protector`
+1. Record all requests to the Docker socket, e.g.: `docker run -it --rm -e PROFILE=unprotected -e LOG_REQUESTS=true -p127.0.0.1:2375:2375 -v /var/run/docker.sock:/var/run/docker.sock knrdl/docker-socket-protector`
+2. Analyze the lines starting with "request rule:" and extract rules into regular expressions
+3. Write a custom profile file "supersecure" and start the software with it, e.g.: `docker run -it --rm -e PROFILE=supersecure -e LOG_REQUESTS=true -p127.0.0.1:2375:2375 -v /var/run/docker.sock:/var/run/docker.sock -v $PWD/supersecure:/profiles/supersecure:ro knrdl/docker-socket-protector`
+4. Test the profile, e.g.: `sudo DOCKER_HOST=tcp://localhost:2375 docker ps`
 
 ## FAQ
 
