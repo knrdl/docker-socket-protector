@@ -1,3 +1,3 @@
-module traefik-docker-protector
+module docker-socket-protector
 
-go 1.17
+go 1.20

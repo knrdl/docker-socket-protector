@@ -1,0 +1,5 @@
+# Only allow reading operations
+# Be aware that clients still can e.g. read secrets from environment variables
+
+# Method   Path
+(GET|HEAD) /.*

@@ -1,10 +1,10 @@
-FROM golang:alpine as builder
+FROM docker.io/golang:alpine as builder
 
 WORKDIR /go/src/app
 
 COPY src .
 
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /traefik-docker-protector
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /docker-socket-protector
 
 
 
@@ -14,6 +14,8 @@ FROM scratch
 
 EXPOSE 2375/tcp
 
-COPY --from=builder /traefik-docker-protector /traefik-docker-protector
+COPY --from=builder /docker-socket-protector /docker-socket-protector
 
-CMD ["/traefik-docker-protector"]
+COPY profiles /profiles
+
+CMD ["/docker-socket-protector"]

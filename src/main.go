@@ -1,106 +1,48 @@
 package main
 
 import (
-	"context"
-	"html"
-	"io"
+	"io/fs"
 	"log"
-	"net"
 	"net/http"
-	"regexp"
+	"os"
+	"strconv"
 )
 
-var urlRegexes = []*regexp.Regexp{
-	genRegex(`^/v\d+\.\d+/containers/json\?limit=\d+$`),
-	genRegex(`^/v\d+\.\d+/containers/[0-9a-fA-F]+/json$`),
-	genRegex(`^/v\d+\.\d+/events\?filters=%7B%22type%22%3A%7B%22container%22%3Atrue%7D%7D$`),
-	genRegex(`^/v\d+\.\d+/networks$`),
-	genRegex(`^/v\d+\.\d+/services$`),
-	genRegex(`^/v\d+\.\d+/tasks\?filters=`),
-	genRegex(`^/v\d+\.\d+/version$`),
-}
-
-var newLineRegex = regexp.MustCompile(`\r?\n`)
-
-func genRegex(pattern string) (urlRegex *regexp.Regexp) {
-	urlRegex, _ = regexp.Compile(pattern)
-	return
-}
-
-func copyHeaders(dst, src http.Header) {
-	for k, vv := range src {
-		for _, v := range vv {
-			dst.Add(k, v)
-		}
-	}
-}
-
-type proxy struct {
-	forwarder *http.Client
-}
-
-func (p *proxy) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	if req.URL.Scheme != "" {
-		msg := "unsupported protocol scheme: " + req.URL.String()
-		http.Error(res, html.EscapeString(msg), http.StatusBadRequest)
-		log.Println(newLineRegex.ReplaceAllString(msg, " "))
-		return
-	}
-
-	if req.Method != "GET" {
-		msg := "unsupported method: " + req.Method
-		http.Error(res, html.EscapeString(msg), http.StatusMethodNotAllowed)
-		log.Println(newLineRegex.ReplaceAllString(msg, " "))
-		return
-	}
-
-	reqOk := false
-	for _, re := range urlRegexes {
-		if re.MatchString(req.URL.String()) {
-			reqOk = true
-			break
-		}
-	}
-
-	if !reqOk {
-		msg := "denied request to: " + req.URL.String()
-		http.Error(res, html.EscapeString(msg), http.StatusForbidden)
-		log.Println(newLineRegex.ReplaceAllString(msg, " "))
-		return
-	}
-
-	req.URL.Scheme = "http"
-	req.URL.Host = "docker"
-
-	// Request.RequestURI can't be set in client requests.
-	// http://golang.org/src/pkg/net/http/client.go
-	req.RequestURI = ""
-
-	resp, err := p.forwarder.Do(req)
+func IsSocket(path string) bool {
+	fileInfo, err := os.Stat(path)
 	if err != nil {
-		http.Error(res, "Docker Socket Error", http.StatusBadGateway)
-		log.Println("Docker Socket Error:", err)
-		return
+		return false
 	}
-	defer resp.Body.Close()
-
-	res.WriteHeader(resp.StatusCode)
-	copyHeaders(res.Header(), resp.Header)
-	io.Copy(res, resp.Body)
+	return fileInfo.Mode().Type() == fs.ModeSocket
 }
 
 func main() {
-	handler := &proxy{
-		forwarder: &http.Client{
-			Transport: &http.Transport{
-				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-					return net.Dial("unix", "/var/run/docker.sock")
-				},
-			},
-		},
+	logRequests, err := strconv.ParseBool(os.Getenv("LOG_REQUESTS"))
+	if err != nil {
+		log.Fatal("Environment variable LOG_REQUESTS must be 'true' or 'false'.")
+	}
+	profileName := os.Getenv("PROFILE")
+
+	if profileName == "" {
+		log.Fatal("No profile given. Use 'unprotected' to allow all requests.")
+	}
+	if profileName == "unprotected" && !logRequests {
+		log.Fatal("Aborting. Allowing all requests (as profile is 'unprotected') and not logging requests is not recommended.")
+	}
+
+	if !IsSocket("/var/run/docker.sock") {
+		log.Fatal("No docker socket provided at '/var/run/docker.sock'.")
+	}
+
+	profileRules := getProfile(profileName)
+
+	handler := &FilterProxy{
+		Rules:       &profileRules,
+		LogRequests: logRequests,
+		Forwarder:   NewForwarder(),
 	}
 
 	if err := http.ListenAndServe(":2375", handler); err != nil {
-		log.Fatal("ListenAndServe:", err)
+		log.Fatal("error listing on port: ", err)
 	}
 }

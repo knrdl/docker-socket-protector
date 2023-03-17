@@ -1,0 +1,32 @@
+# Method Path
+
+# Basic info
+GET /_ping
+HEAD /_ping
+GET /version
+GET /info
+GET /v\d+\.\d+/info
+GET /containers/json\?all=.+
+GET /v\d+\.\d+/containers/json\?all=.+
+GET /containers/[0-9a-fA-F]+/json
+GET /v\d+\.\d+/containers/[0-9a-fA-F]+/json
+GET /containers/[0-9a-fA-F]+/logs\?.*
+GET /containers/[0-9a-fA-F]+/stats\?stream=false
+GET /containers/[0-9a-fA-F]+/top
+
+# Extended info (less error messages)
+GET /v\d+\.\d+/networks
+GET /networks
+GET /images/json\?all=.
+GET /images/[^/\?]+/json
+GET /v\d+\.\d+/volumes
+GET /volumes
+
+# Restart container
+# POST /containers/[0-9a-fA-F]+/restart
+
+# Terminal
+# POST /containers/[0-9a-fA-F]+/exec
+# POST /containers/[0-9a-fA-F]+/attach\?.+
+# POST /exec/[0-9a-fA-F]+/start
+# POST /exec/[0-9a-fA-F]+/resize\?.+
