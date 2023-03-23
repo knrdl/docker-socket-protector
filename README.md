@@ -46,14 +46,61 @@ services:
       - "80:80"
     networks:
       - docker_socket_net
-  
+
+  docker-socket-protector:
+    image: knrdl/docker-socket-protector # or: ghcr.io/knrdl/docker-socket-protector
+    hostname: docker-socket-protector
+    read_only: true
+    environment:
+      LOG_REQUESTS: "true"
+      PROFILE: "traefik"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - docker_socket_net
+
+networks:
+  docker_socket_net:
+    attachable: false
+    internal: true
+```
+
+### Portainer Example Setup
+
+[Portainer](https://docs.portainer.io/) is a container management web interface
+with RBAC controls for standalone and Swarm based Docker hosts. Portainer
+requires access to both disruptive and destructive API calls and two example
+profiles are provided for a standalone Portainer instance; one profile is
+**read-only**, while the other has **write** access. Following the Docker
+Compose example YAML above, we can implement Portainer in a similar manner.
+
+**DO NOT USE THIS EXAMPLE IN INTERNET FACING ENVIRONMENTS WITHOUT USING TLS
+CERTIFICATES ON YOUR PORTAINER INSTANCE!!**
+
+```yaml
+version: '3.9'
+
+services:
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9000:9000
+    security_opt:
+      - no-new-privileges:true
+    command: "-H tcp://docker-socket-protector:2375"
+    ports:
+      - "9000:9000"
+    networks:
+      - docker_socket_net
+
   docker-socket-protector:
     image: knrdl/docker-socket-protector  # or: ghcr.io/knrdl/docker-socket-protector
     hostname: docker-socket-protector
     read_only: true
     environment:
       LOG_REQUESTS: 'true'
-      PROFILE: 'traefik'
+      PROFILE: 'portainer-rw-whitelist'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
