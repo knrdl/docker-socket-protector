@@ -84,8 +84,6 @@ services:
 
   portainer:
     image: portainer/portainer-ce:latest
-    ports:
-      - 9000:9000
     security_opt:
       - no-new-privileges:true
     command: "-H tcp://docker-socket-protector:2375"
