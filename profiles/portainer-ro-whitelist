@@ -1,0 +1,11 @@
+# Profile for Portainer CE which limits Portainer to read-only operations. Consider that additional
+# rules may be required if you operate Portainer with Docker Swarm to manage secrets, configs
+# or services not available on standalone Docker hosts
+
+# Method    Path
+
+### Read only operations ###
+HEAD        /_ping
+GET         (/v\d+\.\d+)?/containers/[0-9a-fA-F]+/(json|top|logs|stats).*$
+GET         (/v\d+\.\d+)?/containers/json\?all=.*
+GET         (/v\d+\.\d+)?/(_ping|events|images|info|networks|plugins|version|volumes)(\?.*|/.*)?
