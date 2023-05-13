@@ -96,6 +96,7 @@ services:
     image: knrdl/docker-socket-protector  # or: ghcr.io/knrdl/docker-socket-protector
     hostname: docker-socket-protector
     read_only: true
+    cap_drop: [ all ]
     environment:
       LOG_REQUESTS: 'true'
       PROFILE: 'portainer-rw-whitelist'
