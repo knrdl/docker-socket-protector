@@ -70,13 +70,9 @@ networks:
 
 [Portainer](https://docs.portainer.io/) is a container management web interface
 with RBAC controls for standalone and Swarm based Docker hosts. Portainer
-requires access to both disruptive and destructive API calls and two example
+requires access to both disruptive and destructive API calls and two
 profiles are provided for a standalone Portainer instance; one profile is
-**read-only**, while the other has **write** access. Following the Docker
-Compose example YAML above, we can implement Portainer in a similar manner.
-
-**DO NOT USE THIS EXAMPLE IN INTERNET FACING ENVIRONMENTS WITHOUT USING TLS
-CERTIFICATES ON YOUR PORTAINER INSTANCE!!**
+read-only `portainer-ro`, while the other has write `portainer-rw` access.
 
 ```yaml
 version: '3.9'
@@ -89,7 +85,7 @@ services:
       - no-new-privileges:true
     command: "-H tcp://docker-socket-protector:2375"
     ports:
-      - "9000:9000"
+      - "127.0.0.1:9000:9000"
     networks:
       - docker_socket_net
 
@@ -100,7 +96,7 @@ services:
     cap_drop: [ all ]
     environment:
       LOG_REQUESTS: 'true'
-      PROFILE: 'portainer-rw-whitelist'
+      PROFILE: 'portainer-rw'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
