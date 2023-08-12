@@ -72,7 +72,7 @@ networks:
 with RBAC controls for standalone and Swarm based Docker hosts. Portainer
 requires access to both disruptive and destructive API calls and two
 profiles are provided for a standalone Portainer instance; one profile is
-read-only `portainer-ro`, while the other has write `portainer-rw` access.
+read-only `portainer-ro`, while the other has write access `portainer-rw`.
 
 ```yaml
 version: '3.9'
