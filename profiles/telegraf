@@ -1,0 +1,7 @@
+# Method   Path
+HEAD       /_ping
+GET        /(v\d+\.\d+/)?info
+GET        /(v\d+\.\d+/)?containers/[0-9a-fA-F]+/json(\?.+|)
+GET        /(v\d+\.\d+/)?containers/[0-9a-fA-F]+/logs(\?.+|)
+GET        /(v\d+\.\d+/)?containers/[0-9a-fA-F]+/stats(\?.+|)
+GET        /(v\d+\.\d+/)?containers/json(\?.+|)
