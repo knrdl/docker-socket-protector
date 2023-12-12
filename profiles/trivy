@@ -1,0 +1,9 @@
+# Profile for Aquasec Trivy (https://aquasecurity.github.io/trivy/) image scans
+
+# Method   Path
+HEAD       /_ping
+GET        /v\d+\.\d+/images/.+/json
+GET        /v\d+\.\d+/images/.+/history
+GET        /v\d+\.\d+/images/get\?names=.+
+
+GET        /v\d+\.\d+/containers/json\?all=1
