@@ -5,7 +5,7 @@ Some containerized applications (e.g. portainer, traefik, watchtower, ouroboros)
 graph LR
 a[Container]
 b[Docker\nSocket\nProtector]
-c[Docker\nDaemon]
+c[Docker\nDaemon]    mem_limit: 128mb
 
 
 subgraph Docker Network
@@ -59,6 +59,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - docker_socket_net
+    mem_limit: 128mb
 
 networks:
   docker_socket_net:
@@ -101,6 +102,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - docker_socket_net
+    mem_limit: 128mb
 
 networks:
   docker_socket_net:
