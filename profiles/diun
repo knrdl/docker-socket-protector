@@ -1,0 +1,21 @@
+# DIUN Docker Socket Access Profile
+#
+# This profile grants DIUN (Docker Image Update Notifier) minimal read-only access.
+# Documentation: https://crazymax.dev/diun/
+#
+# - all access is restricted to GET and HEAD methods (read-only)
+# - image access is limited to metadata queries only
+
+# Method    Path
+
+### Health check ###
+HEAD        /_ping
+
+### Docker version info ###
+GET         /(v\d+\.\d+/)?version
+
+### Filtered container list ###
+GET         /(v\d+\.\d+/)?containers/json\?filters=.*status.*
+
+### Image metadata (broad read-only) ###
+GET         /(v\d+\.\d+/)?images(\?.*|/.*)?
