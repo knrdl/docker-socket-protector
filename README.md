@@ -4,8 +4,8 @@ Some containerized applications (e.g. portainer, traefik, watchtower, ouroboros)
 ```mermaid
 graph LR
 a[Container]
-b[Docker\nSocket\nProtector]
-c[Docker\nDaemon]
+b[Docker Socket Protector]
+c[Docker Daemon]
 
 
 subgraph Docker Network
