@@ -4,7 +4,7 @@
 
 ### Read only operations ###
 HEAD        /_ping
-GET         /(v\d+\.\d+/)(version|services|networks|tasks|events)(\?.*|/.*)?
+GET         /(v\d+\.\d+/)(version|services|networks|tasks|events|nodes)(\?.*|/.*)?
 GET         /(v\d+\.\d+/)containers/json(\?.*|/.*)?
 
 ### Allow to send USR1 signal ###
