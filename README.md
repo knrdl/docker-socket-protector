@@ -59,7 +59,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - docker_socket_net
-    mem_limit: 128mb
+    mem_limit: 32mb
 
 networks:
   docker_socket_net:
