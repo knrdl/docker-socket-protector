@@ -1,5 +1,6 @@
 # Method Path
 GET      /v\d+\.\d+/containers/json\?limit=\d+
+GET      /v\d+\.\d+/containers/json
 GET      /v\d+\.\d+/containers/[0-9a-fA-F]+/json
 GET      /v\d+\.\d+/events\?filters=%7B%22type%22%3A%7B%22container%22%3Atrue%7D%7D
 GET      /v\d+\.\d+/networks
